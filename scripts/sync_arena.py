@@ -77,7 +77,8 @@ def picture(block):
         return None
     item = {
         'src': src,
-        'title': clean_title(block.get('title')),
+        'order': split_order(block.get('title'))[0],
+        'title': clean_title(split_order(block.get('title'))[1]),
         'caption': plain(block.get('description')),
         'alt': block.get('alt_text') or '',
         'block_id': block.get('id'),
@@ -92,6 +93,12 @@ def picture(block):
     if credit:
         item['credit'] = credit
     return item
+
+
+def split_order(title):
+    """'3', '3 sea', '3. sea', '3 - sea' -> (3, 'sea'). Filenames like '12_x.jpg' are left alone."""
+    m = re.match(r'^\s*(\d{1,3})(?:\s*[.):\-–—]\s*|\s+|$)(.*)$', title or '')
+    return (int(m.group(1)), m.group(2).strip()) if m else (None, (title or '').strip())
 
 
 def clean_title(title):
@@ -127,6 +134,8 @@ def projects_in(parent, kind):
             continue
         slug = child['slug']
         gallery = [x for b in contents(slug) if (x := picture(b))]
+        # Numbered blocks ("1", "2 sea"...) come first in that order; the rest keep Are.na order.
+        gallery.sort(key=lambda x: (x['order'] is None, x['order'] or 0))
         if not gallery:
             print('WARNING: no images in project', slug)
         projects.append({
