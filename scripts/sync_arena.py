@@ -6,6 +6,7 @@ Only run on a repository/branch intended for publishing. The output is public.
 import json
 import os
 from pathlib import Path
+from urllib.error import HTTPError
 from urllib.request import Request, urlopen
 from urllib.parse import quote
 
@@ -29,13 +30,17 @@ def get(path):
         'Accept': 'application/json',
         'User-Agent': 'MargauxPortfolioSync/0.1 (+https://margaux-ch.com)',
     })
-    with urlopen(req, timeout=35) as res:
-        return json.load(res)
+    try:
+        with urlopen(req, timeout=35) as res:
+            return json.load(res)
+    except HTTPError as err:
+        # Show Are.na's own explanation instead of a bare "400 Bad Request".
+        raise SystemExit(f'Are.na API error {err.code} for {path}: {err.read().decode(errors="replace")[:500]}')
 
 
 def contents(slug):
     # Deliberately first page only; Are.na recommends bounded requests.
-    response = get('/channels/' + quote(slug) + '/contents?per=100&sort=position')
+    response = get('/channels/' + quote(slug) + '/contents?per=100&sort=position_asc')
     if response.get('meta', {}).get('has_more_pages'):
         print(f'WARNING: {slug} has more than 100 items; only first page published')
     return response.get('data', [])
