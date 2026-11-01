@@ -19,6 +19,7 @@ CHANNELS = {
     'pretty': 'belles-choses',
     'memory': 'memory-triggers-sluo8qbvjka',
 }
+OWNER_SLUG = 'mx-ch'
 TOKEN = os.environ.get('ARENA_TOKEN')
 if not TOKEN:
     raise SystemExit('Missing ARENA_TOKEN GitHub Actions secret')
@@ -70,12 +71,31 @@ def picture(block):
     if not src:
         print('WARNING: no image URL for block', block.get('id'))
         return None
-    return {
+    item = {
         'src': src,
-        'caption': block.get('title') or plain(block.get('description')),
-        'alt': block.get('alt_text') or block.get('title') or '',
+        'caption': plain(block.get('description')),
+        'alt': block.get('alt_text') or '',
         'block_id': block.get('id'),
     }
+    credit = credit_for(block)
+    if credit:
+        item['credit'] = credit
+    return item
+
+
+def credit_for(block):
+    """Attribution for images added by someone other than the site owner."""
+    user = block.get('user') or {}
+    credit = {}
+    if user.get('slug') and user['slug'] != OWNER_SLUG:
+        credit['by'] = user.get('name') or user['slug']
+        credit['by_url'] = 'https://www.are.na/' + quote(user['slug'])
+    source = block.get('source') or {}
+    if credit and source.get('url', '').startswith('https://'):
+        credit['source_url'] = source['url']
+        host = (source.get('provider') or {}).get('name') or ''
+        credit['source'] = '.'.join(host.removeprefix('www.').split('.')[-2:])
+    return credit
 
 
 def channel_item(item):
