@@ -67,7 +67,10 @@ def url_from(obj):
 def picture(block):
     if block.get('type') != 'Image' or block.get('state') not in ('available', None):
         return None
-    src = url_from(block.get('image'))
+    img = block.get('image') or {}
+    # Prefer Are.na's resized versions (fast) over the multi-megabyte original.
+    medium, large, small = (img.get(k) if isinstance(img.get(k), dict) else {} for k in ('medium', 'large', 'small'))
+    src = medium.get('src') or url_from(img)
     if not src:
         print('WARNING: no image URL for block', block.get('id'))
         return None
@@ -76,7 +79,13 @@ def picture(block):
         'caption': plain(block.get('description')),
         'alt': block.get('alt_text') or '',
         'block_id': block.get('id'),
+        'w': medium.get('width') or img.get('width'),
+        'h': medium.get('height') or img.get('height'),
     }
+    if large.get('src'):
+        item['src_large'], item['w_large'] = large['src'], large.get('width')
+    if small.get('src'):
+        item['thumb'], item['thumb_2x'] = small['src'], small.get('src_2x')
     credit = credit_for(block)
     if credit:
         item['credit'] = credit
