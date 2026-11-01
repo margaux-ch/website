@@ -5,6 +5,7 @@ Only run on a repository/branch intended for publishing. The output is public.
 """
 import json
 import os
+import re
 from pathlib import Path
 from urllib.error import HTTPError
 from urllib.request import Request, urlopen
@@ -76,6 +77,7 @@ def picture(block):
         return None
     item = {
         'src': src,
+        'title': clean_title(block.get('title')),
         'caption': plain(block.get('description')),
         'alt': block.get('alt_text') or '',
         'block_id': block.get('id'),
@@ -90,6 +92,13 @@ def picture(block):
     if credit:
         item['credit'] = credit
     return item
+
+
+def clean_title(title):
+    """Keep titles that read like a name; drop filenames, hashes and truncated URLs."""
+    title = (title or '').strip()
+    junk = re.search(r'\.(jpe?g|png|gif|webp|heic|tiff?)\b|\.\.\.$|[0-9a-f]{12,}|^_|^\d+[_-]\d+', title, re.I)
+    return '' if junk else title
 
 
 def credit_for(block):
