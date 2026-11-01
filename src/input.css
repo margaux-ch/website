@@ -1,0 +1,31 @@
+@import "tailwindcss" source(none);
+@source "../index.html";
+@source "../app.js";
+
+/* ==========================================================================
+   DESIGN TOKENS  (documented in DESIGN.md)
+   Everything is Tailwind's default scale: spacing steps are multiples of 4px
+   (p-1 = 4, p-2 = 8, p-3 = 12, p-4 = 16 ...), type uses text-xs/sm/base/2xl,
+   colours come from the neutral + stone palettes. Only role names are added.
+   ========================================================================== */
+@theme {
+  --font-sans: Arial, Helvetica, sans-serif;
+
+  /* colour roles -> Tailwind palette */
+  --color-paper: var(--color-stone-50);    /* page background */
+  --color-ink:   var(--color-neutral-900); /* titles, active nav, image names */
+  --color-ink-2: var(--color-neutral-700); /* reading text, captions */
+  --color-ink-3: var(--color-neutral-500); /* muted: inactive nav, credits, counters, footer (>= 4.5:1) */
+}
+
+/* Text styles: one name per role, usable with variants (hover:type-ui, md:type-title ...) */
+@utility type-title { @apply text-2xl leading-tight tracking-tight font-normal text-ink; }
+@utility type-body  { @apply text-sm leading-relaxed text-ink-2; }
+@utility type-ui    { @apply text-sm leading-snug text-ink-3; }
+@utility type-meta  { @apply text-xs leading-normal text-ink-2; }
+@utility type-micro { @apply text-xs leading-snug text-ink-3; }
+
+@layer base {
+  html { @apply bg-paper; }
+  :focus-visible { @apply outline outline-1 outline-offset-4 outline-ink; }
+}

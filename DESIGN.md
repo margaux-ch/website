@@ -1,35 +1,48 @@
 # Design system
 
-Minimal, image-led, editorial. One typeface (Arial), one weight. Hierarchy comes only from **size, colour and spacing**. All values live as tokens at the top of `style.css`; change them there.
+Minimal, image-led, editorial. One typeface (Arial), one weight. Hierarchy comes only from **size, colour and spacing**.
 
-## Text styles
+The styling is **Tailwind CSS 4**. Tokens live in `src/input.css`; markup uses Tailwind utility classes and variants (`hover:`, `md:`, `aria-[current=page]:`, `group-data-[page=inner]/page:` ...). The compiled file `style.css` is committed, so GitHub Pages serves it as is: **no build runs on the server**.
 
-| Token | Size / line | Colour | Used for |
+## Rebuild the CSS after changing styles
+
+```bash
+tailwindcss -i src/input.css -o style.css --minify
+```
+
+(Installed with `brew install tailwindcss`. Changing Are.na content never needs this.)
+
+## Rules
+
+- **Spacing is always Tailwind's 4px scale**: `p-1`=4, `p-2`=8, `p-3`=12, `p-4`=16, `p-6`=24, `p-8`=32 ... No half steps (`p-0.5`, `p-1.5`) and no arbitrary pixel values for spacing.
+- **Colours are Tailwind palette values through three roles** (never raw hex):
+  - `text-ink` = neutral-900: titles, active nav, image names
+  - `text-ink-2` = neutral-700: reading text, captions
+  - `text-ink-3` = neutral-500: muted text (inactive nav, credits, counters, footer); 4.5:1 on the background, so still accessible
+  - `bg-paper` = stone-50: page background
+- **Text styles** are named utilities and work with variants (`hover:type-ui`, `md:type-title`):
+
+| Utility | Tailwind size | Colour | Used for |
 |---|---|---|---|
-| `--type-title` | 22 / 1.25, tight tracking | `--ink` | Page and project titles (the loudest text on any inner page) |
-| `--type-body` | 14 / 1.65 | `--ink-2` | Project descriptions, about me |
-| `--type-ui` | 13 / 1.3 | `--ink-3` → `--ink` | Navigation, tile labels, buttons |
-| `--type-wordmark` | 16 / 1.2, tight | `--ink` home, `--ink-3` elsewhere | "margaux chalançon" |
-| `--type-meta` | 12 / 1.5 | `--ink-2` (name in `--ink`, credit in `--ink-3`) | Captions, credits, counters |
-| `--type-micro` | 11 / 1.3 | `--ink-3` | Footer |
+| `type-title` | `text-2xl` (24px), tight | ink | Page and project titles, the loudest text on inner pages |
+| `type-body` | `text-sm` (14px), relaxed | ink-2 | Descriptions, about me |
+| `type-ui` | `text-sm` (14px) | ink-3 | Navigation, buttons |
+| `type-meta` | `text-xs` (12px) | ink-2 | Captions, credits, counters |
+| `type-micro` | `text-xs` (12px) | ink-3 | Footer |
+| wordmark | `text-base` (16px), tight | ink (home) / ink-3 (inner) | "margaux chalançon" |
 
-Colours: `--ink` #171717 (titles, active nav) · `--ink-2` #4d4d4d (reading text) · `--ink-3` #767676 (muted; 4.5:1 on the background, so still accessible).
+## Page states (variants driven by `data-` attributes on `<body>`)
 
-## Navigation states (information hierarchy)
+- `data-page="home"`: name in full ink, nav in ink-2. The photo is the content.
+- `data-page="inner"`: name and nav fade to ink-3; the **current section is the only nav item in ink + underlined**; the page title is the largest text. Hover restores full ink.
+- `data-fit="true"` (homepage, carousels, viewer): the page never scrolls; the image scales to the space between header, caption and footer. Otherwise the page scrolls only when content is taller than the screen.
+- Footer is sticky at the bottom of the window.
+- Mobile first: `md:` (768px) switches to the desktop layout.
 
-- **Homepage:** name in full ink; nav in `--ink-2`. The photo is the content.
-- **Inner pages:** name fades to `--ink-3`, nav items are `--ink-3`. The **current section is the only nav item in full ink + underlined**, and the page title (22px) is the largest text. Hover brings any nav item or the name back to full ink.
+## Project pages
 
-## Spacing
-
-Scale: 4 · 8 · 12 · 16 · 24 · 40 px (`--s1`…`--s6`). Side gutter is fluid (`--gutter`, 16–36px). Header and footer are intentionally slim.
-
-## Layout rules
-
-- Homepage, carousels (things i find pretty, memory triggers) and the image viewer **never scroll**: the image scales to the space left between header, caption and footer.
-- All other pages scroll only when content is taller than the screen.
-- Footer is sticky and always sits at the bottom of the window.
-- Project pages show a grid with rows of equal height; images keep their proportions (no crops) and read left to right in order. Clicking opens the viewer (`#/project/<slug>/<n>`); arrows, swipe and ← → keys move between images, Esc or "close" returns to the grid at the same scroll position.
+- Grid with rows of equal height (`[--row-h:148px]` mobile, `md:[--row-h:232px]`); images keep their proportions, no crops, read left to right in order.
+- Click opens the viewer (`#/project/<slug>/<n>`); arrows, swipe and ← → keys move; Esc or "close" returns to the grid at the same scroll position.
 
 ## Image order in projects
 
